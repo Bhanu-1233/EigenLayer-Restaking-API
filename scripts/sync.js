@@ -1,35 +1,29 @@
 // scripts/sync.js
-const sqlite3 = require("sqlite3").verbose();
-const { fetchRestakers } = require("../services/fetchRestakers");
+const Database = require('better-sqlite3');
+const { fetchRestakers } = require('../services/fetchRestakers');
 
-const db = new sqlite3.Database("./database.db");
+const db = new Database('./database.db');
 
 async function sync() {
   try {
     const restakers = await fetchRestakers();
+    console.log(`📦 Fetched ${restakers.length} restakers from subgraph.`);
 
-    if (!restakers || restakers.length === 0) {
-      console.log("⚠️ No restakers fetched.");
-      return;
-    }
+    const stmt = db.prepare(
+      'INSERT OR IGNORE INTO restakers (address, amount, validator) VALUES (?, ?, ?)'
+    );
 
-    const stmt = db.prepare("INSERT OR IGNORE INTO restakers (address, amount, validator) VALUES (?, ?, ?)");
-
-    restakers.forEach((r) => {
-      stmt.run([r.address, r.amount, r.validator], (err) => {
-        if (err) {
-          console.error(`❌ Failed to insert restaker ${r.address}:`, err.message);
-        }
-      });
+    const insertMany = db.transaction((restakers) => {
+      for (const r of restakers) {
+        stmt.run(r.address, r.amount?.toString() ?? '0', r.validator ?? '');
+      }
     });
 
-    stmt.finalize(() => {
-      console.log(`✅ Synced ${restakers.length} restakers to the database.`);
-      db.close();
-    });
-
+    insertMany(restakers);
+    console.log('✅ Restakers synced to database.');
   } catch (err) {
-    console.error("❌ Sync failed:", err.message);
+    console.error('❌ Sync failed:', err.message);
+  } finally {
     db.close();
   }
 }
