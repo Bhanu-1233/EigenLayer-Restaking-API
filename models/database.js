@@ -1,7 +1,9 @@
 const Database = require('better-sqlite3');
+const path = require('path');
 require('dotenv').config();
 
-const DB_PATH = process.env.DB_NAME || './database.db';
+// Default path to SQLite database
+const DB_PATH = process.env.DB_NAME || path.join(__dirname, '../../data/restaking.db');
 
 let db;
 try {
