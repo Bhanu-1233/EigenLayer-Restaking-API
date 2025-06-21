@@ -1,14 +1,14 @@
-const sqlite3 = require("sqlite3").verbose();
-require("dotenv").config();
+const Database = require('better-sqlite3');
+require('dotenv').config();
 
-const DB_PATH = process.env.DB_NAME || "./database.db";
+const DB_PATH = process.env.DB_NAME || './database.db';
 
-const db = new sqlite3.Database(DB_PATH, (err) => {
-  if (err) {
-    console.error("❌ Failed to connect to SQLite DB:", err.message);
-  } else {
-    console.log(`✅ Connected to SQLite DB at ${DB_PATH}`);
-  }
-});
+let db;
+try {
+  db = new Database(DB_PATH);
+  console.log(`✅ Connected to SQLite DB at ${DB_PATH}`);
+} catch (err) {
+  console.error('❌ Failed to connect to SQLite DB:', err.message);
+}
 
 module.exports = db;
