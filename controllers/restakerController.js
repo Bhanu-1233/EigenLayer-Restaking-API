@@ -1,16 +1,20 @@
 const queries = require("../models/queries");
 
 exports.getAll = (req, res) => {
-  queries.getAllRestakers((err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
+  try {
+    const rows = queries.getAllRestakers(); // synchronous
     res.json(rows);
-  });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
 exports.add = (req, res) => {
-  const data = req.body;
-  queries.addRestaker(data, function (err) {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ insertedId: this.lastID });
-  });
+  try {
+    const data = req.body;
+    const insertedId = queries.addRestaker(data); // synchronous
+    res.json({ insertedId });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
